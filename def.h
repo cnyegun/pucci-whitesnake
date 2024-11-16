@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <raylib.h>
+
 // ===================
 // DATA DEFINITIONS:
 // Direction is one of:
@@ -20,18 +22,17 @@ typedef struct SnakeSegment {
 	int x, y;
 	struct SnakeSegment* next;
 } SnakeSegment;
-// Cell is one of:
-//  - EMPTY
-//  - FOOD
-// interp. a cell from the game board 
-typedef enum Cell {
-	EMPTY,
-	FOOD,
-} Cell;
+// Apple is:
+//  - pos x, y
+// interp. a Apple with its x and y position
+typedef struct Apple {
+	int x, y;
+} Apple;
 // ===================
 // CONSTANT DEFINITIONS:
-// Game board WIDTH * LENGTH
-Cell GAME_BOARD[20][20] = {EMPTY};
+const int DRAW_MULTIPLIER = 20;
+const int SCREEN_WIDTH = 800;
+const int SCREEN_HEIGHT = 800;
 // ===================
 // FUNCTION DEFINITION
 // Add a body segment to Snake (literally linked)
@@ -47,7 +48,7 @@ void growSnake(SnakeSegment** head, int pos_x, int pos_y) {
     *head = newSnake;        
 }
 // Display the snake to sdtout (test)
-void displaySnake(SnakeSegment* head) {
+void printSnake(SnakeSegment* head) {
 	if (head == NULL) {
 		return;
 	}
@@ -78,4 +79,86 @@ void removeTail(SnakeSegment** head) {
 		}
 		temp = temp->next;
 	}
+}
+
+// Draw the snake on the Window
+void drawSnake(SnakeSegment* head) {
+	if (head == NULL) {
+		return;
+	}
+	while (head != NULL) {
+		DrawRectangle(
+			head->x * DRAW_MULTIPLIER,
+			head->y * DRAW_MULTIPLIER,
+			DRAW_MULTIPLIER,
+			DRAW_MULTIPLIER,
+			RAYWHITE
+		);
+		head = head->next;
+	}
+} 
+
+// Make the snake move based on the Direction
+void advanceSnake(SnakeSegment** head, Direction direction, Apple* apple, int* score) {
+	switch (direction) {
+	case UP:
+		growSnake(head, (*head)->x, (*head)->y - 1);
+		if ((*head)->y == apple->y && (*head)->x == apple->x) {
+    		apple->x = rand() % 20; 
+			apple->y = rand() % 20;
+			*score += 1;
+			return;
+		}
+		break;
+	case RIGHT:
+		growSnake(head, (*head)->x + 1, (*head)->y);
+		if ((*head)->y == apple->y && (*head)->x == apple->x) {
+    		apple->x = rand() % 20; 
+			apple->y = rand() % 20;
+			*score += 1;
+			return;
+		}
+		break;
+	case DOWN:
+		growSnake(head, (*head)->x, (*head)->y + 1);
+		if ((*head)->y == apple->y && (*head)->x == apple->x) {
+    		apple->x = rand() % 20; 
+			apple->y = rand() % 20;
+			*score += 1;
+			return;
+		}
+		break;
+	case LEFT:
+		growSnake(head, (*head)->x - 1, (*head)->y);
+		if ((*head)->y == apple->y && (*head)->x == apple->x) {
+    		apple->x = rand() % 20; 
+			apple->y = rand() % 20;
+			*score += 1;
+			return;
+		}
+		break;
+	default:
+		break;
+	}
+
+	removeTail(head);
+}
+
+// Change direction of &direction if the right key is pressed
+void changeDirection(Direction* direction) {
+	if (IsKeyDown(KEY_UP) && *direction != DOWN) *direction = UP;
+	else if (IsKeyDown(KEY_RIGHT) && *direction != LEFT) *direction = RIGHT;
+	else if (IsKeyDown(KEY_DOWN) && *direction != UP) *direction = DOWN; 
+	else if (IsKeyDown(KEY_LEFT) && *direction != RIGHT) *direction = LEFT; 
+	else return;
+}
+
+void displayApple(Apple apple) {
+	DrawRectangle(
+		apple.x * DRAW_MULTIPLIER,
+		apple.y * DRAW_MULTIPLIER,
+		DRAW_MULTIPLIER,
+		DRAW_MULTIPLIER,
+		RED
+		);
 }
