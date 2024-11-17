@@ -6,6 +6,7 @@ int main(void) {
     SnakeSegment* head = {NULL};
     Apple apple = {rand() % (20 + 1), rand() % (20 + 1)};
     int score = 0;
+    GameState gamestate = MAIN_MENU;
 
     growSnake(&head, 1, 4);
     growSnake(&head, 2, 4);
@@ -16,10 +17,10 @@ int main(void) {
 
     // Main game loop
     while (!WindowShouldClose()) {
-        // Game state update 
         advanceSnake(&head, direction, &apple, &score);
         changeDirection(&direction);
         displayApple(apple);
+        gamestate = CollideHandler(head, gamestate);
         //TODO: handle collison with itself and the wall
         //TODO: start game and game over
 
@@ -27,6 +28,9 @@ int main(void) {
             ClearBackground(BLACK);
             drawSnake(head);
             DrawText(TextFormat("Score: %d", score), 20, 750, 35, GREEN);
+            if (gamestate == DEAD_SCREEN) {
+                displayYouDied();
+            }
         EndDrawing();
     }
 

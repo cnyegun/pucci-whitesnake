@@ -14,6 +14,14 @@
 typedef enum Direction {
 	UP, RIGHT, DOWN, LEFT,
 } Direction;
+// GameState is one of:
+//  - MAIN_MENU
+//  - GAMEPLAY
+//  - DEAD_SCREEN
+// interp. depend on this gamestate, draw accordingly
+typedef enum GameState {
+	MAIN_MENU, GAMEPLAY, DEAD_SCREEN,
+} GameState;
 // SnakeSegment is:
 //  - pos x, y
 //  - next SnakeSegment
@@ -161,4 +169,33 @@ void displayApple(Apple apple) {
 		DRAW_MULTIPLIER,
 		RED
 		);
+}
+
+// Display "You Died" in the middle of the screen 
+void displayYouDied() {
+	int textWidth = MeasureText("YOU DIED", 50);
+	DrawText("YOU DIED", (SCREEN_WIDTH/2) - (textWidth/2), (SCREEN_HEIGHT/2) - 50, 50, RED);
+}
+
+// *head GameState -> GameState 
+// return if the *head is collide with the wall OR collide with itself
+GameState CollideHandler(SnakeSegment* head, GameState gamestate) {
+	// Wall collide handler
+	if ((head->x < 0) ||
+		(head->y < 0) ||
+		(head->x >= (SCREEN_WIDTH/DRAW_MULTIPLIER)) ||
+		(head->y >= SCREEN_HEIGHT/DRAW_MULTIPLIER)) {
+		return DEAD_SCREEN;
+	}
+	int head_x = head->x;
+	int head_y = head->y;
+	head = head->next;
+
+	while (head != NULL) {
+		if (head->x == head_x && head->y == head_y) {
+			return DEAD_SCREEN;
+		}
+		head = head->next;
+	}
+	return GAMEPLAY;
 }
